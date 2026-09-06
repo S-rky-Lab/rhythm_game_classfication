@@ -71,6 +71,7 @@ npx prisma db seed
 
 ## 起動方法
 
+(Deploy設定中)
 開発サーバーを起動します。
 
 ```bash
