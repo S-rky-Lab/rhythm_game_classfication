@@ -1,0 +1,174 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Game {
+  id           Int       @id @default(autoincrement())
+  name         String
+  reading      String?   // よみがな
+  abbreviation String?   // 略称
+  developer    String?   // 開発元・運営
+  officialUrl  String?   @map("official_url")
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  categories    GameCategory[]
+  attributes    GameAttribute[]
+  tags          GameTag[]
+  fieldStatuses GameFieldStatus[]
+  relationsFrom GameRelation[]    @relation("GameRelationsFrom")
+  relationsTo   GameRelation[]    @relation("GameRelationsTo")
+  histories     History[]
+  proposals     Proposal[]
+
+  @@map("games")
+}
+
+model Category {
+  id           Int              @id @default(autoincrement())
+  name         String
+  displayOrder Int              @default(0) @map("display_order")
+  parentId     Int?             @map("parent_id")
+  parent       Category?        @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     Category[]       @relation("CategoryHierarchy")
+  options      CategoryOption[]
+
+  @@map("categories")
+}
+
+model CategoryOption {
+  id           Int            @id @default(autoincrement())
+  categoryId   Int            @map("category_id")
+  category     Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name         String
+  displayOrder Int            @default(0) @map("display_order")
+  games        GameCategory[]
+
+  @@map("category_options")
+}
+
+model GameCategory {
+  id               Int            @id @default(autoincrement())
+  gameId           Int            @map("game_id")
+  game             Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  categoryOptionId Int            @map("category_option_id")
+  categoryOption   CategoryOption @relation(fields: [categoryOptionId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, categoryOptionId])
+  @@map("game_categories")
+}
+
+model Attribute {
+  id           Int             @id @default(autoincrement())
+  name         String
+  displayOrder Int             @default(0) @map("display_order")
+  games        GameAttribute[]
+
+  @@map("attributes")
+}
+
+model GameAttribute {
+  id          Int       @id @default(autoincrement())
+  gameId      Int       @map("game_id")
+  game        Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  attributeId Int       @map("attribute_id")
+  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  value       String
+
+  @@map("game_attributes")
+}
+
+model Tag {
+  id    Int       @id @default(autoincrement())
+  name  String    @unique
+  games GameTag[]
+
+  @@map("tags")
+}
+
+model GameTag {
+  id     Int  @id @default(autoincrement())
+  gameId Int  @map("game_id")
+  game   Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  tagId  Int  @map("tag_id")
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, tagId])
+  @@map("game_tags")
+}
+
+model Source {
+  id            Int               @id @default(autoincrement())
+  name          String
+  url           String?
+  type          String            // 公式サイト / 公式Wiki / 開発者発表 / ゲーム内情報 / その他
+  fieldStatuses GameFieldStatus[]
+
+  @@map("sources")
+}
+
+model GameFieldStatus {
+  id              Int       @id @default(autoincrement())
+  gameId          Int       @map("game_id")
+  game            Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  fieldName       String    @map("field_name")
+  status          String    // confirmed / unconfirmed / estimated / unknown_source / deprecated
+  sourceId        Int?      @map("source_id")
+  source          Source?   @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  lastConfirmedAt DateTime? @map("last_confirmed_at")
+
+  @@map("game_field_status")
+}
+
+model GameRelation {
+  id            Int    @id @default(autoincrement())
+  gameId        Int    @map("game_id")
+  game          Game   @relation("GameRelationsFrom", fields: [gameId], references: [id], onDelete: Cascade)
+  relatedGameId Int    @map("related_game_id")
+  relatedGame   Game   @relation("GameRelationsTo", fields: [relatedGameId], references: [id], onDelete: Cascade)
+  relationType  String @map("relation_type")
+
+  @@map("game_relations")
+}
+
+model History {
+  id           Int      @id @default(autoincrement())
+  gameId       Int      @map("game_id")
+  game         Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  changedField String   @map("changed_field")
+  oldValue     String?  @map("old_value")
+  newValue     String?  @map("new_value")
+  changedBy    String?  @map("changed_by")
+  changedAt    DateTime @default(now()) @map("changed_at")
+
+  @@map("history")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String   @default("viewer") // admin / editor / viewer
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Proposal {
+  id           Int       @id @default(autoincrement())
+  gameId       Int?      @map("game_id")
+  game         Game?     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  type         String    // "create" | "update"
+  proposedData String    @map("proposed_data")
+  status       String    @default("pending") // "pending" | "approved" | "rejected"
+  submittedBy  String?   @map("submitted_by")
+  comment      String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  reviewedAt   DateTime? @map("reviewed_at")
+
+  @@map("proposals")
+}
