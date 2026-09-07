@@ -54,7 +54,7 @@ npm install
 ルートディレクトリに `.env` を作成し、PostgreSQLの接続URLを設定します。
 
 ```env
-DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/rhythm_game_classification"
+DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/rhythm_game_classification" 
 ```
 
 `.env` には接続情報が含まれるため、GitHubへコミットしないでください。
