@@ -33,11 +33,6 @@ export default async function GameDetailPage({ params }: PageProps) {
           attribute: true,
         },
       },
-      tags: {
-        include: {
-          tag: true,
-        },
-      },
       fieldStatuses: {
         include: {
           source: true,
@@ -89,9 +84,8 @@ export default async function GameDetailPage({ params }: PageProps) {
 
   const getStatus = (fieldName: string) => statusMap.get(fieldName);
 
-  // --- 類似音ゲーの算出 (分類・タグの共通点を探す) ---
+  // --- 類似音ゲーの算出 (分類の共通点を探す) ---
   const currentOptionIds = new Set(game.categories.map((c) => c.categoryOptionId));
-  const currentTagIds = new Set(game.tags.map((t) => t.tagId));
 
   const otherGames = await prisma.game.findMany({
     where: { id: { not: game.id } },
@@ -103,11 +97,6 @@ export default async function GameDetailPage({ params }: PageProps) {
               category: true,
             },
           },
-        },
-      },
-      tags: {
-        include: {
-          tag: true,
         },
       },
       attributes: {
@@ -122,14 +111,12 @@ export default async function GameDetailPage({ params }: PageProps) {
     game: (typeof otherGames)[0];
     score: number;
     commonCategories: string[];
-    commonTags: string[];
   }
 
   const similarGames: SimilarGameInfo[] = [];
 
   for (const other of otherGames) {
     const commonCategories: string[] = [];
-    const commonTags: string[] = [];
 
     // 共通の分類項目
     other.categories.forEach((oc) => {
@@ -140,21 +127,13 @@ export default async function GameDetailPage({ params }: PageProps) {
       }
     });
 
-    // 共通のタグ
-    other.tags.forEach((ot) => {
-      if (currentTagIds.has(ot.tagId)) {
-        commonTags.push(ot.tag.name);
-      }
-    });
-
-    const score = commonCategories.length * 2 + commonTags.length;
+    const score = commonCategories.length * 2;
 
     if (score > 0) {
       similarGames.push({
         game: other,
         score,
         commonCategories,
-        commonTags,
       });
     }
   }
@@ -263,20 +242,6 @@ export default async function GameDetailPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* タグ */}
-        {game.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {game.tags.map((gt) => (
-              <Link
-                key={gt.tag.id}
-                href={`/games?q=${encodeURIComponent(gt.tag.name)}`}
-                className="text-xs px-2.5 py-1 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 transition"
-              >
-                #{gt.tag.name}
-              </Link>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* --- 類似のシステムを持つ音ゲー（類似音ゲー探索＆比較）セクション --- */}
@@ -290,7 +255,7 @@ export default async function GameDetailPage({ params }: PageProps) {
               </span>
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              操作デバイス・レーン方式・プレイスタイル等の分類やタグが共通するタイトル
+              操作デバイス・レーン方式・プレイスタイル等の分類が共通するタイトル
             </p>
           </div>
           <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
@@ -300,11 +265,11 @@ export default async function GameDetailPage({ params }: PageProps) {
 
         {topSimilarGames.length === 0 ? (
           <p className="text-xs text-gray-400 py-2">
-            共通の分類やタグを持つ類似音ゲーはまだ登録されていません。
+            共通の分類を持つ類似音ゲーはまだ登録されていません。
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-3">
-            {topSimilarGames.map(({ game: sim, commonCategories, commonTags }) => (
+            {topSimilarGames.map(({ game: sim, commonCategories }) => (
               <div
                 key={sim.id}
                 className="p-4 rounded-xl border border-gray-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-indigo-400 transition shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
@@ -338,14 +303,6 @@ export default async function GameDetailPage({ params }: PageProps) {
                         className="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900 text-[11px] font-medium"
                       >
                         {c}
-                      </span>
-                    ))}
-                    {commonTags.map((t, i) => (
-                      <span
-                        key={i}
-                        className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 text-[10px]"
-                      >
-                        #{t}
                       </span>
                     ))}
                   </div>

@@ -13,7 +13,6 @@ export interface GameFormData {
   notes?: string;
   categoryOptionIds: number[];
   attributes: { attributeId: number; value: string }[];
-  tags: string[]; // タグ名配列
   fieldStatuses: {
     fieldName: string;
     status: string;
@@ -64,26 +63,7 @@ export async function createGame(data: GameFormData) {
       }
     }
 
-    // 4. タグの保存 (既存タグを探すか新規作成)
-    if (data.tags && data.tags.length > 0) {
-      for (const tagName of data.tags) {
-        const cleanName = tagName.trim();
-        if (!cleanName) continue;
-        const tag = await tx.tag.upsert({
-          where: { name: cleanName },
-          update: {},
-          create: { name: cleanName },
-        });
-        await tx.gameTag.create({
-          data: {
-            gameId: game.id,
-            tagId: tag.id,
-          },
-        });
-      }
-    }
-
-    // 5. 情報状態 (FieldStatuses) の保存
+    // 4. 情報状態 (FieldStatuses) の保存
     if (data.fieldStatuses && data.fieldStatuses.length > 0) {
       const validStatuses = data.fieldStatuses.filter((s) => s.status);
       if (validStatuses.length > 0) {
@@ -99,7 +79,7 @@ export async function createGame(data: GameFormData) {
       }
     }
 
-    // 6. 履歴記録
+    // 5. 履歴記録
     await tx.history.create({
       data: {
         gameId: game.id,
@@ -167,27 +147,7 @@ export async function updateGame(gameId: number, data: GameFormData) {
       }
     }
 
-    // 4. タグ差し替え
-    await tx.gameTag.deleteMany({ where: { gameId } });
-    if (data.tags && data.tags.length > 0) {
-      for (const tagName of data.tags) {
-        const cleanName = tagName.trim();
-        if (!cleanName) continue;
-        const tag = await tx.tag.upsert({
-          where: { name: cleanName },
-          update: {},
-          create: { name: cleanName },
-        });
-        await tx.gameTag.create({
-          data: {
-            gameId,
-            tagId: tag.id,
-          },
-        });
-      }
-    }
-
-    // 5. ステータス差し替え
+    // 4. ステータス差し替え
     await tx.gameFieldStatus.deleteMany({ where: { gameId } });
     if (data.fieldStatuses && data.fieldStatuses.length > 0) {
       const validStatuses = data.fieldStatuses.filter((s) => s.status);
@@ -204,7 +164,7 @@ export async function updateGame(gameId: number, data: GameFormData) {
       }
     }
 
-    // 6. 履歴記録
+    // 5. 履歴記録
     await tx.history.create({
       data: {
         gameId,

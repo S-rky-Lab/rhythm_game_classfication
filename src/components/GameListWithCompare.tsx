@@ -30,12 +30,6 @@ export interface GameItem {
     };
     value: string;
   }[];
-  tags: {
-    tag: {
-      id: number;
-      name: string;
-    };
-  }[];
   fieldStatuses: {
     fieldName: string;
     status: string;
@@ -145,7 +139,6 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
                 <th className="py-2.5 px-3 min-w-36">操作方式</th>
                 <th className="py-2.5 px-3 min-w-36">レーン・ノーツ方式</th>
                 <th className="py-2.5 px-3 min-w-32">プラットフォーム</th>
-                <th className="py-2.5 px-3 min-w-28">タグ</th>
                 <th className="py-2.5 px-3 text-right pr-4">操作</th>
               </tr>
             </thead>
@@ -272,25 +265,6 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
                       <span className="truncate max-w-xs block" title={platformText || ""}>
                         {platformText || "-"}
                       </span>
-                    </td>
-
-                    {/* タグ */}
-                    <td className="py-2.5 px-3">
-                      <div className="flex flex-wrap gap-1 max-w-xs">
-                        {game.tags.slice(0, 3).map((t) => (
-                          <span
-                            key={t.tag.id}
-                            className="text-[10px] px-1 rounded bg-gray-100 dark:bg-zinc-800 text-gray-500"
-                          >
-                            #{t.tag.name}
-                          </span>
-                        ))}
-                        {game.tags.length > 3 && (
-                          <span className="text-[10px] text-gray-400">
-                            +{game.tags.length - 3}
-                          </span>
-                        )}
-                      </div>
                     </td>
 
                     {/* 操作 */}

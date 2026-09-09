@@ -29,12 +29,6 @@ interface GameDetail {
     };
     value: string;
   }[];
-  tags: {
-    tag: {
-      id: number;
-      name: string;
-    };
-  }[];
 }
 
 interface MasterCategory {
@@ -293,27 +287,6 @@ export default function CompareTable({
                 );
               })}
 
-
-              {/* タグ行 */}
-              <tr>
-                <td className="p-4 font-semibold text-gray-500 bg-gray-50/40 dark:bg-zinc-800/30 sticky left-0 bg-white dark:bg-zinc-900 z-10">
-                  タグ
-                </td>
-                {games.map((g) => (
-                  <td key={g.id} className="p-4 border-l border-gray-200 dark:border-zinc-800">
-                    <div className="flex flex-wrap gap-1">
-                      {g.tags.map((t) => (
-                        <span
-                          key={t.tag.id}
-                          className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300"
-                        >
-                          #{t.tag.name}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                ))}
-              </tr>
 
               {/* 備考行 */}
               <tr>

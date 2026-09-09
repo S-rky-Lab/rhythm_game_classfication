@@ -39,7 +39,6 @@ interface ProposalFormProps {
     notes?: string | null;
     categoryOptionIds: number[];
     attributes?: { attributeId: number; value: string }[];
-    tags: string[];
     fieldStatuses: {
       fieldName: string;
       status: string;
@@ -79,9 +78,6 @@ export default function ProposalForm({
   const [selectedOptionIds, setSelectedOptionIds] = useState<number[]>(
     initialData.categoryOptionIds
   );
-
-  // タグ
-  const [tagsStr, setTagsStr] = useState(initialData.tags.join(", "));
 
   // フィールドステータスマップ
   const initialStatusMap: Record<
@@ -123,12 +119,8 @@ export default function ProposalForm({
       notes,
       categoryOptionIds: selectedOptionIds,
       attributes: [], // 詳細属性は不使用
-      tags: tagsStr
-        .split(/[,、]/)
-        .map((t) => t.trim())
-        .filter(Boolean),
       fieldStatuses: Object.entries(statusMap)
-        .filter(([_, data]) => data.status)
+        .filter(([, data]) => data.status)
         .map(([fieldName, data]) => ({
           fieldName,
           status: data.status,
@@ -147,8 +139,10 @@ export default function ProposalForm({
           comment,
         });
         setSubmitted(true);
-      } catch (err: any) {
-        setErrorMsg(err.message || "提案の送信に失敗しました");
+      } catch (err: unknown) {
+        setErrorMsg(
+          err instanceof Error ? err.message : "提案の送信に失敗しました"
+        );
       }
     });
   };
@@ -347,24 +341,6 @@ export default function ProposalForm({
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* タグ */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 sm:p-8 space-y-4 shadow-sm">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-zinc-100 border-b border-gray-100 dark:border-zinc-800 pb-3">
-          タグ
-        </h2>
-        <div>
-          <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-            自由タグ（カンマ区切り）
-          </label>
-          <input
-            type="text"
-            value={tagsStr}
-            onChange={(e) => setTagsStr(e.target.value)}
-            className="w-full px-3.5 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm focus:ring-2 focus:ring-indigo-500"
-          />
         </div>
       </div>
 
