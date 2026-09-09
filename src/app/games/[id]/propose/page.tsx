@@ -20,9 +20,6 @@ export default async function ProposeEditPage({ params }: PageProps) {
     where: { id },
     include: {
       categories: true,
-      tags: {
-        include: { tag: true },
-      },
       fieldStatuses: true,
     },
   });
@@ -52,7 +49,6 @@ export default async function ProposeEditPage({ params }: PageProps) {
     officialUrl: game.officialUrl,
     notes: game.notes,
     categoryOptionIds: game.categories.map((c) => c.categoryOptionId),
-    tags: game.tags.map((t) => t.tag.name),
     fieldStatuses: game.fieldStatuses.map((fs) => ({
       fieldName: fs.fieldName,
       status: fs.status,

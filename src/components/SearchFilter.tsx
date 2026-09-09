@@ -68,7 +68,7 @@ export default function SearchFilter({
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="ゲーム名、略称、よみがな、開発元、タグ（例: IIDX, セガ, 鍵盤, 足）..."
+              placeholder="ゲーム名、略称、よみがな、開発元（例: IIDX, セガ）..."
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-zinc-900 transition"
             />
           </div>

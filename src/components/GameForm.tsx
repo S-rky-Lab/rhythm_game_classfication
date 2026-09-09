@@ -37,7 +37,6 @@ interface GameFormProps {
     notes?: string | null;
     categoryOptionIds: number[];
     attributes?: { attributeId: number; value: string }[];
-    tags: string[];
     fieldStatuses: {
       fieldName: string;
       status: string;
@@ -81,9 +80,6 @@ export default function GameForm({
     initialData?.categoryOptionIds || []
   );
 
-  // タグ (カンマ区切り文字列)
-  const [tagsStr, setTagsStr] = useState(initialData?.tags.join(", ") || "");
-
   // フィールドステータスマップ (fieldName -> { status, sourceId, lastConfirmedAt })
   const initialStatusMap: Record<
     string,
@@ -114,7 +110,7 @@ export default function GameForm({
   const handleStatusChange = (
     fieldName: string,
     key: "status" | "sourceId" | "lastConfirmedAt",
-    val: any
+    val: string | number | null
   ) => {
     setStatusMap((prev) => ({
       ...prev,
@@ -143,12 +139,8 @@ export default function GameForm({
       notes,
       categoryOptionIds: selectedOptionIds,
       attributes: [], // 詳細属性は現在使用しない
-      tags: tagsStr
-        .split(/[,、]/)
-        .map((t) => t.trim())
-        .filter(Boolean),
       fieldStatuses: Object.entries(statusMap)
-        .filter(([_, data]) => data.status)
+        .filter(([, data]) => data.status)
         .map(([fieldName, data]) => ({
           fieldName,
           status: data.status,
@@ -164,9 +156,10 @@ export default function GameForm({
         } else if (mode === "edit" && initialData?.id) {
           await updateGame(initialData.id, payload);
         }
-      } catch (err: any) {
-        if (err.message && !err.message.includes("NEXT_REDIRECT")) {
-          setErrorMsg(err.message || "保存に失敗しました");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "保存に失敗しました";
+        if (message && !message.includes("NEXT_REDIRECT")) {
+          setErrorMsg(message);
         }
       }
     });
@@ -368,25 +361,6 @@ export default function GameForm({
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* 3. タグ */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 sm:p-8 space-y-4 shadow-sm">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-zinc-100 border-b border-gray-100 dark:border-zinc-800 pb-3">
-          3. タグ
-        </h2>
-        <div>
-          <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-            自由タグ（カンマ区切りで複数入力）
-          </label>
-          <input
-            type="text"
-            value={tagsStr}
-            onChange={(e) => setTagsStr(e.target.value)}
-            placeholder="例: BEMANI, 鍵盤, アーケード, DJ, 足"
-            className="w-full px-3.5 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-sm focus:ring-2 focus:ring-indigo-500"
-          />
         </div>
       </div>
 

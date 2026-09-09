@@ -21,13 +21,11 @@ async function main() {
   await prisma.history.deleteMany();
   await prisma.gameFieldStatus.deleteMany();
   await prisma.gameRelation.deleteMany();
-  await prisma.gameTag.deleteMany();
   await prisma.gameAttribute.deleteMany();
   await prisma.gameCategory.deleteMany();
   await prisma.categoryOption.deleteMany();
   await prisma.category.deleteMany();
   await prisma.attribute.deleteMany();
-  await prisma.tag.deleteMany();
   await prisma.source.deleteMany();
   await prisma.user.deleteMany();
   await prisma.game.deleteMany();
@@ -149,29 +147,6 @@ async function main() {
     include: { options: true },
   });
 
-  // ==========================================
-  // 4. タグマスタ (Tags)
-  // ==========================================
-  const tagNames = [
-    "BEMANI",
-    "SEGA",
-    "ゲキチュウマイ",
-    "スマホ音ゲー",
-    "ボカロ",
-    "DJ",
-    "鍵盤",
-    "足",
-    "ダンス",
-    "和太鼓",
-    "高難易度",
-    "アーケード",
-  ];
-  const tags: Record<string, { id: number; name: string }> = {};
-  for (const name of tagNames) {
-    const tag = await prisma.tag.create({ data: { name } });
-    tags[name] = tag;
-  }
-
   // ヘルパー: オプションID取得
   const getOptId = (cat: CategoryWithOptions, optName: string) => {
     const found = cat.options.find((option) => option.name === optName);
@@ -180,7 +155,7 @@ async function main() {
   };
 
   // ==========================================
-  // 5. サンプルゲーム登録（詳細属性なし）
+  // 4. サンプルゲーム登録（詳細属性なし）
   // ==========================================
 
   // --- 1. beatmania IIDX ---
@@ -202,15 +177,6 @@ async function main() {
           { categoryOptionId: getOptId(catPlayMode, "DP(ダブルプレイ)") },
           { categoryOptionId: getOptId(catPlatform, "アーケード") },
           { categoryOptionId: getOptId(catPlatform, "Windows") },
-        ],
-      },
-      tags: {
-        create: [
-          { tagId: tags["BEMANI"].id },
-          { tagId: tags["DJ"].id },
-          { tagId: tags["鍵盤"].id },
-          { tagId: tags["高難易度"].id },
-          { tagId: tags["アーケード"].id },
         ],
       },
       fieldStatuses: {
@@ -251,13 +217,6 @@ async function main() {
           { categoryOptionId: getOptId(catPlatform, "アーケード") },
         ],
       },
-      tags: {
-        create: [
-          { tagId: tags["SEGA"].id },
-          { tagId: tags["ゲキチュウマイ"].id },
-          { tagId: tags["アーケード"].id },
-        ],
-      },
       fieldStatuses: {
         create: [
           {
@@ -290,13 +249,6 @@ async function main() {
           { categoryOptionId: getOptId(catPlatform, "アーケード") },
         ],
       },
-      tags: {
-        create: [
-          { tagId: tags["SEGA"].id },
-          { tagId: tags["ゲキチュウマイ"].id },
-          { tagId: tags["アーケード"].id },
-        ],
-      },
       fieldStatuses: {
         create: [
           {
@@ -327,13 +279,6 @@ async function main() {
           { categoryOptionId: getOptId(catPlayMode, "SP(シングルプレイ)") },
           { categoryOptionId: getOptId(catPlatform, "iOS") },
           { categoryOptionId: getOptId(catPlatform, "Android") },
-        ],
-      },
-      tags: {
-        create: [
-          { tagId: tags["スマホ音ゲー"].id },
-          { tagId: tags["ボカロ"].id },
-          { tagId: tags["SEGA"].id },
         ],
       },
       fieldStatuses: {
@@ -373,12 +318,6 @@ async function main() {
           { categoryOptionId: getOptId(catPlatform, "Android") },
         ],
       },
-      tags: {
-        create: [
-          { tagId: tags["和太鼓"].id },
-          { tagId: tags["アーケード"].id },
-        ],
-      },
       fieldStatuses: {
         create: [
           {
@@ -413,14 +352,6 @@ async function main() {
           { categoryOptionId: getOptId(catPlatform, "Web") },
         ],
       },
-      tags: {
-        create: [
-          { tagId: tags["BEMANI"].id },
-          { tagId: tags["足"].id },
-          { tagId: tags["ダンス"].id },
-          { tagId: tags["アーケード"].id },
-        ],
-      },
       fieldStatuses: {
         create: [
           {
@@ -434,7 +365,7 @@ async function main() {
     },
   });
 
-  // 6. ゲーム関連付け
+  // 5. ゲーム関連付け
   await prisma.gameRelation.create({
     data: {
       gameId: game2.id,

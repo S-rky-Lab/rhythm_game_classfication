@@ -1,4 +1,5 @@
 import React from "react";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import SearchFilter from "@/components/SearchFilter";
 import GameListWithCompare from "@/components/GameListWithCompare";
@@ -33,9 +34,9 @@ export default async function GamesPage({ searchParams }: PageProps) {
   });
 
   // 2. 検索条件組み立て (Prisma WHERE)
-  const whereConditions: any[] = [];
+  const whereConditions: Prisma.GameWhereInput[] = [];
 
-  // キーワード検索 (ゲーム名, 読み, 略称, 開発元, タグ)
+  // キーワード検索 (ゲーム名, 読み, 略称, 開発元)
   if (q.trim() !== "") {
     whereConditions.push({
       OR: [
@@ -43,15 +44,6 @@ export default async function GamesPage({ searchParams }: PageProps) {
         { reading: { contains: q.trim() } },
         { abbreviation: { contains: q.trim() } },
         { developer: { contains: q.trim() } },
-        {
-          tags: {
-            some: {
-              tag: {
-                name: { contains: q.trim() },
-              },
-            },
-          },
-        },
       ],
     });
   }
@@ -86,11 +78,6 @@ export default async function GamesPage({ searchParams }: PageProps) {
       attributes: {
         include: {
           attribute: true,
-        },
-      },
-      tags: {
-        include: {
-          tag: true,
         },
       },
       fieldStatuses: {

@@ -7,15 +7,12 @@ async function verifySimilarGames() {
     where: { name: "CHUNITHM" },
     include: {
       categories: true,
-      tags: true,
     },
   });
 
   if (!chunithm) throw new Error("CHUNITHMが見つかりません");
 
   const cOptIds = new Set(chunithm.categories.map((c) => c.categoryOptionId));
-  const cTagIds = new Set(chunithm.tags.map((t) => t.tagId));
-
   const otherGames = await prisma.game.findMany({
     where: { id: { not: chunithm.id } },
     include: {
@@ -26,7 +23,6 @@ async function verifySimilarGames() {
           },
         },
       },
-      tags: { include: { tag: true } },
     },
   });
 
@@ -38,13 +34,6 @@ async function verifySimilarGames() {
       if (cOptIds.has(oc.categoryOptionId)) {
         score += 2;
         common.push(`${oc.categoryOption.category.name}:${oc.categoryOption.name}`);
-      }
-    });
-
-    other.tags.forEach((ot) => {
-      if (cTagIds.has(ot.tagId)) {
-        score += 1;
-        common.push(`#${ot.tag.name}`);
       }
     });
 

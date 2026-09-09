@@ -19,7 +19,6 @@ model Game {
 
   categories    GameCategory[]
   attributes    GameAttribute[]
-  tags          GameTag[]
   fieldStatuses GameFieldStatus[]
   relationsFrom GameRelation[]    @relation("GameRelationsFrom")
   relationsTo   GameRelation[]    @relation("GameRelationsTo")
@@ -81,25 +80,6 @@ model GameAttribute {
   value       String
 
   @@map("game_attributes")
-}
-
-model Tag {
-  id    Int       @id @default(autoincrement())
-  name  String    @unique
-  games GameTag[]
-
-  @@map("tags")
-}
-
-model GameTag {
-  id     Int  @id @default(autoincrement())
-  gameId Int  @map("game_id")
-  game   Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  tagId  Int  @map("tag_id")
-  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@unique([gameId, tagId])
-  @@map("game_tags")
 }
 
 model Source {

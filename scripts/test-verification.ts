@@ -9,7 +9,6 @@ async function runVerification() {
     include: {
       categories: { include: { categoryOption: { include: { category: true } } } },
       attributes: { include: { attribute: true } },
-      tags: { include: { tag: true } },
       fieldStatuses: true,
     },
   });
@@ -22,7 +21,6 @@ async function runVerification() {
       OR: [
         { name: { contains: "IIDX" } },
         { abbreviation: { contains: "IIDX" } },
-        { tags: { some: { tag: { name: { contains: "IIDX" } } } } },
       ],
     },
   });
@@ -66,7 +64,6 @@ async function runVerification() {
         attributeId: a.attributeId,
         value: a.value,
       })),
-      tags: testGame.tags.map((t) => t.tag.name),
       fieldStatuses: testGame.fieldStatuses.map((fs) => ({
         fieldName: fs.fieldName,
         status: fs.status,

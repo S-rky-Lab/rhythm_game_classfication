@@ -196,12 +196,6 @@ export default function ProposalListManager({
                             </div>
                           </div>
                         )}
-                        {parsedData.tags && parsedData.tags.length > 0 && (
-                          <div className="sm:col-span-2">
-                            <span className="text-gray-400 mr-1">タグ:</span>
-                            <span>{parsedData.tags.join(", ")}</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}

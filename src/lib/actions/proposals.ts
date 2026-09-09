@@ -104,26 +104,6 @@ export async function approveProposal(proposalId: number) {
       }
     }
 
-    // タグ差し替え
-    await tx.gameTag.deleteMany({ where: { gameId: targetGameId } });
-    if (data.tags && data.tags.length > 0) {
-      for (const tagName of data.tags) {
-        const cleanName = tagName.trim();
-        if (!cleanName) continue;
-        const tag = await tx.tag.upsert({
-          where: { name: cleanName },
-          update: {},
-          create: { name: cleanName },
-        });
-        await tx.gameTag.create({
-          data: {
-            gameId: targetGameId!,
-            tagId: tag.id,
-          },
-        });
-      }
-    }
-
     // ステータス差し替え
     await tx.gameFieldStatus.deleteMany({ where: { gameId: targetGameId } });
     if (data.fieldStatuses && data.fieldStatuses.length > 0) {
