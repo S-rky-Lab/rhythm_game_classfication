@@ -3,6 +3,7 @@
 import React, { useState, useTransition } from "react";
 import Link from "next/link";
 import { createGame, updateGame, GameFormData } from "@/lib/actions/games";
+import GenerateNotesButton from "@/components/GenerateNotesButton";
 
 interface CategoryOption {
   id: number;
@@ -302,9 +303,29 @@ export default function GameForm({
           )}
 
           <div className="sm:col-span-2">
-            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-              備考・特徴説明
-            </label>
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300">
+                備考・特徴説明
+              </label>
+              <GenerateNotesButton
+                input={{
+                  name,
+                  reading,
+                  abbreviation,
+                  developer,
+                  officialUrl,
+                  categories: categories.flatMap((category) =>
+                    category.options
+                      .filter((option) => selectedOptionIds.includes(option.id))
+                      .map((option) => `${category.name}: ${option.name}`)
+                  ),
+                  fieldStatuses: Object.entries(statusMap)
+                    .filter(([, data]) => data.status)
+                    .map(([fieldName, data]) => `${fieldName}: ${data.status}`),
+                }}
+                onGenerated={setNotes}
+              />
+            </div>
             <textarea
               rows={3}
               value={notes}

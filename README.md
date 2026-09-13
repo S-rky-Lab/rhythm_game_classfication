@@ -59,6 +59,16 @@ DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/rhythm
 
 `.env` には接続情報が含まれるため、GitHubへコミットしないでください。
 
+AIによる備考・特徴説明の生成を使う場合は、TinyFish Search APIで検索した上位5件の検索結果を、Google公式の `@google/genai` SDKを通じてGeminiへ渡します。APIキーはGitHubへ公開しないでください。
+
+```env
+GEMINI_API_KEY="your-api-key"
+GEMINI_MODEL="gemini-2.5-flash"
+TINYFISH_API_KEY="your-tinyfish-api-key"
+```
+
+AI生成では、データベースに現在登録されている6件のサンプルゲームだけを文章例として参照します。後から登録したゲームは参照データに追加されません。TinyFishで対象ゲームの検索結果が取得できない場合や、検索結果から特徴を確認できない場合は「情報が有りませんでした」と表示します。
+
 ## データベースのセットアップ
 
 開発用データベースにマイグレーションを適用します。
