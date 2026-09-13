@@ -18,6 +18,7 @@ export interface NotesGenerationInput {
 export interface NotesGenerationResult {
   notes: string;
   searchResultCount: number;
+  error?: string;
 }
 
 function getRequiredEnv(name: string) {
@@ -239,7 +240,9 @@ async function fetchTinyFishPages(
   });
 }
 
-export async function generateGameNotes(input: NotesGenerationInput) {
+async function generateGameNotesInternal(
+  input: NotesGenerationInput
+): Promise<NotesGenerationResult> {
   if (!input.name.trim()) {
     throw new Error("ゲーム名を入力してください");
   }
@@ -339,4 +342,19 @@ export async function generateGameNotes(input: NotesGenerationInput) {
     notes: normalizedContent,
     searchResultCount: searchResults.length,
   };
+}
+
+export async function generateGameNotes(
+  input: NotesGenerationInput
+): Promise<NotesGenerationResult> {
+  try {
+    return await generateGameNotesInternal(input);
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    return {
+      notes: "",
+      searchResultCount: 0,
+      error: message || "AI生成に失敗しました",
+    };
+  }
 }

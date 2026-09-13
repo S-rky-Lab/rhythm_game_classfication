@@ -25,6 +25,9 @@ export default function GenerateNotesButton({
     setIsGenerating(true);
     try {
       const result = await generateGameNotes(input);
+      if (result.error) {
+        throw new Error(result.error);
+      }
       if (typeof result === "string") {
         onGenerated(result);
         setSearchResultCount(null);
