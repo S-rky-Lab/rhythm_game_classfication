@@ -1,9 +1,14 @@
 "use server";
 
 import { GoogleGenAI } from "@google/genai";
+import { headers } from "next/headers";
 import { NOTE_REFERENCE_GAMES } from "@/lib/ai/sample-games";
 
 const NO_INFORMATION = "情報が有りませんでした";
+const AI_GENERATION_ERROR_MESSAGE = "AI生成に失敗しました";
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 export interface NotesGenerationInput {
   name: string;
@@ -40,6 +45,82 @@ function getAiErrorMessage(cause: unknown) {
     return "Gemini APIの利用上限に達しました。Google AI Studioの割り当て・請求設定を確認するか、時間を置いて再試行してください。";
   }
   return "Gemini APIの呼び出しに失敗しました。APIキー、モデル名、利用設定を確認してください。";
+}
+
+function maskErrorCause(cause: unknown) {
+  const message = cause instanceof Error ? cause.message : String(cause);
+  if (/429|RESOURCE_EXHAUSTED|quota|exceeded/i.test(message)) {
+    return "rate_or_quota";
+  }
+  if (/TINYFISH_API_KEY|GEMINI_API_KEY|GEMINI_MODEL|設定されていません/i.test(message)) {
+    return "configuration";
+  }
+  if (/TinyFish/i.test(message)) {
+    return "search_provider";
+  }
+  if (/Gemini/i.test(message)) {
+    return "ai_provider";
+  }
+  if (/origin|host/i.test(message)) {
+    return "access_control";
+  }
+  if (/rate limit/i.test(message)) {
+    return "rate_limit";
+  }
+  return "unknown";
+}
+
+function getClientIp(requestHeaders: Headers) {
+  const forwardedFor = requestHeaders.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() || "unknown";
+  }
+  return (
+    requestHeaders.get("x-real-ip") ||
+    requestHeaders.get("cf-connecting-ip") ||
+    "unknown"
+  );
+}
+
+function assertSameOrigin(requestHeaders: Headers) {
+  const origin = requestHeaders.get("origin");
+  const host = requestHeaders.get("host");
+  if (!origin || !host) return;
+
+  let originHost = "";
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    throw new Error("invalid origin");
+  }
+
+  if (originHost !== host) {
+    throw new Error("origin does not match host");
+  }
+}
+
+function assertWithinRateLimit(identifier: string) {
+  const now = Date.now();
+  const current = rateLimitStore.get(identifier);
+  if (!current || current.resetAt <= now) {
+    rateLimitStore.set(identifier, {
+      count: 1,
+      resetAt: now + RATE_LIMIT_WINDOW_MS,
+    });
+    return;
+  }
+
+  if (current.count >= RATE_LIMIT_MAX_REQUESTS) {
+    throw new Error("rate limit exceeded");
+  }
+
+  current.count += 1;
+}
+
+async function assertCanGenerateGameNotes() {
+  const requestHeaders = await headers();
+  assertSameOrigin(requestHeaders);
+  assertWithinRateLimit(getClientIp(requestHeaders));
 }
 
 type TinyFishSearchResult = {
@@ -254,7 +335,7 @@ async function generateGameNotesInternal(
   );
   if (searchResults.length === 0) {
     return {
-      notes: `${input.name.trim()}のゲーム情報を確認しています。詳細は公式情報や信頼できる情報源をご確認ください。`,
+      notes: NO_INFORMATION,
       searchResultCount: 0,
     };
   }
@@ -265,7 +346,9 @@ async function generateGameNotesInternal(
     enrichedSearchResults = await fetchTinyFishPages(searchResults, tinyFishApiKey);
   } catch (cause) {
     // 検索スニペットがある場合は、それを使って生成を続行する。
-    console.warn("TinyFish本文取得をスキップしました", cause);
+    console.warn("TinyFish本文取得をスキップしました", {
+      cause: maskErrorCause(cause),
+    });
   }
 
   const apiKey = getRequiredEnv("GEMINI_API_KEY");
@@ -279,10 +362,10 @@ async function generateGameNotesInternal(
     "固定サンプルは文章の長さ・具体性・文体の参考にし、サンプルの事実を対象ゲームへ流用しないでください。",
     "入力フォームの情報とTinyFishの検索結果を組み合わせ、検索結果で確認できる事実だけを書いてください。",
     "検索結果は上位5件のみを使用し、検索結果にない情報は推測しないでください。",
-    "検索結果が少ない場合でも、検索結果のタイトル・概要・URLと取得した本文から確認できる範囲で説明文を作成してください。",
-    "検索結果が対象ゲームと完全には一致しない場合でも、入力フォームにある確定済みの情報と検索結果から読み取れる一般的な特徴を組み合わせ、控えめな説明文を作成してください。",
+    "検索結果が対象ゲームと一致しない場合は、説明文を作成せず「情報が有りませんでした」だけを返してください。",
+    "検索結果が少ない場合は、検索結果のタイトル・概要・URLと取得した本文から対象ゲームの特徴を確認できる場合だけ説明文を作成してください。",
+    "証拠が不十分な場合は、説明文を作成せず「情報が有りませんでした」だけを返してください。",
     "検索結果や入力フォームから確認できない具体的な事実は断定せず、「対応する」「採用する」などの表現を避けてください。",
-    "情報が少ない場合も「情報が有りませんでした」だけを返さず、ゲーム名と確認できた情報を使って必ず1文を作成してください。",
     "説明は開発元や発売元の紹介だけにせず、ゲーム性・操作性を最優先してください。",
     "検索結果に根拠がある場合は、ノーツの種類、入力操作（タップ・スライド・長押しなど）、レーンや判定の仕組み、プレイ中の特徴を具体的に説明してください。",
     "ゲーム性・操作性が確認できない場合だけ、対応機種や開発元などの基本情報を補足してください。",
@@ -306,7 +389,7 @@ async function generateGameNotesInternal(
       contents: prompt,
       config: {
         systemInstruction:
-              "確認できない情報は断定せず、利用できる検索結果と入力情報が少ない場合も必ず短い説明文を返してください。",
+              "検索結果が対象ゲームと一致しない場合や証拠が不十分な場合は、必ず「情報が有りませんでした」だけを返してください。",
         temperature: 0.1,
         maxOutputTokens: 256,
       },
@@ -319,7 +402,7 @@ async function generateGameNotesInternal(
 
   if (!content) {
     return {
-      notes: `${input.name.trim()}のゲーム情報を確認しています。詳細は検索結果や公式情報をご確認ください。`,
+      notes: NO_INFORMATION,
       searchResultCount: searchResults.length,
     };
   }
@@ -333,7 +416,7 @@ async function generateGameNotesInternal(
     normalizedContent.includes("情報が有りません")
   ) {
     return {
-      notes: `${input.name.trim()}のゲーム情報を確認しています。詳細は検索結果や公式情報をご確認ください。`,
+      notes: NO_INFORMATION,
       searchResultCount: searchResults.length,
     };
   }
@@ -348,13 +431,16 @@ export async function generateGameNotes(
   input: NotesGenerationInput
 ): Promise<NotesGenerationResult> {
   try {
+    await assertCanGenerateGameNotes();
     return await generateGameNotesInternal(input);
   } catch (cause) {
-    const message = cause instanceof Error ? cause.message : String(cause);
+    console.error("generateGameNotes failed", {
+      cause: maskErrorCause(cause),
+    });
     return {
       notes: "",
       searchResultCount: 0,
-      error: message || "AI生成に失敗しました",
+      error: AI_GENERATION_ERROR_MESSAGE,
     };
   }
 }

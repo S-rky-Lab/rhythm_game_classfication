@@ -6,6 +6,8 @@ import {
   NotesGenerationInput,
 } from "@/lib/actions/ai";
 
+const AI_GENERATION_ERROR_MESSAGE = "AI生成に失敗しました";
+
 interface GenerateNotesButtonProps {
   input: NotesGenerationInput;
   onGenerated: (notes: string) => void;
@@ -35,8 +37,8 @@ export default function GenerateNotesButton({
         onGenerated(result.notes);
         setSearchResultCount(result.searchResultCount);
       }
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "AI生成に失敗しました");
+    } catch {
+      setError(AI_GENERATION_ERROR_MESSAGE);
     } finally {
       setIsGenerating(false);
     }
