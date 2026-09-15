@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
           ゲーム一覧
         </Link>
         <span>/</span>
-        <span className="text-gray-900 dark:text-zinc-100 font-medium">ログイン</span>
+        <span className="text-gray-900 dark:text-zinc-100 font-medium"> 管理者ログイン</span>
       </div>
 
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 p-6 sm:p-8 shadow-sm">
