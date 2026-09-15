@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import GameForm from "@/components/GameForm";
 
@@ -15,6 +16,8 @@ export default async function EditGamePage({ params }: PageProps) {
   if (isNaN(id)) {
     notFound();
   }
+
+  await requireRole(["admin", "editor"], `/games/${id}/edit`);
 
   const game = await prisma.game.findUnique({
     where: { id },

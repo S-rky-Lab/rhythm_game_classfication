@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import StatusBadge from "@/components/StatusBadge";
 
@@ -9,6 +10,8 @@ interface PageProps {
 }
 
 export default async function GameDetailPage({ params }: PageProps) {
+  const currentUser = await getCurrentUser();
+  const canEdit = currentUser?.role === "admin" || currentUser?.role === "editor";
   const resolvedParams = await params;
   const id = parseInt(resolvedParams.id, 10);
 
@@ -200,12 +203,14 @@ export default async function GameDetailPage({ params }: PageProps) {
               </svg>
               <span>修正提案</span>
             </Link>
-            <Link
-              href={`/games/${game.id}/edit`}
-              className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-gray-300 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-            >
-              編集
-            </Link>
+            {canEdit && (
+              <Link
+                href={`/games/${game.id}/edit`}
+                className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-gray-300 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                編集
+              </Link>
+            )}
           </div>
         </div>
 
@@ -245,7 +250,7 @@ export default async function GameDetailPage({ params }: PageProps) {
       </div>
 
       {/* --- 類似のシステムを持つ音ゲー（類似音ゲー探索＆比較）セクション --- */}
-      <div className="bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 dark:from-indigo-950/20 dark:via-zinc-900 dark:to-purple-950/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/60 p-6 sm:p-8 space-y-4 shadow-sm">
+      <div className="bg-linear-to-br from-indigo-50/50 via-white to-purple-50/30 dark:from-indigo-950/20 dark:via-zinc-900 dark:to-purple-950/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/60 p-6 sm:p-8 space-y-4 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100/80 dark:border-zinc-800 pb-3">
           <div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-zinc-100 flex items-center gap-2">

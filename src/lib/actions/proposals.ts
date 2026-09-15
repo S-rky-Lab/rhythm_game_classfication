@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { GameFormData } from "@/lib/actions/games";
 
@@ -31,13 +31,15 @@ export async function submitProposal(input: ProposalInput) {
 
   try {
     revalidatePath("/admin/proposals");
-  } catch (e) {
+  } catch {
     // ignore outside Next.js request context
   }
   return proposal;
 }
 
 export async function approveProposal(proposalId: number) {
+  const user = await requireRole(["admin"], "/admin/proposals");
+
   const proposal = await prisma.proposal.findUnique({
     where: { id: proposalId },
   });
@@ -137,7 +139,7 @@ export async function approveProposal(proposalId: number) {
         gameId: targetGameId!,
         changedField: "proposal_approved",
         newValue: `提案 #${proposalId} (提案者: ${proposal.submittedBy || "一般"}) を承認・反映`,
-        changedBy: "admin",
+        changedBy: user.name,
       },
     });
   });
@@ -145,12 +147,14 @@ export async function approveProposal(proposalId: number) {
   try {
     revalidatePath("/admin/proposals");
     revalidatePath("/games");
-  } catch (e) {
+  } catch {
     // ignore outside Next.js request context
   }
 }
 
 export async function rejectProposal(proposalId: number) {
+  await requireRole(["admin"], "/admin/proposals");
+
   const proposal = await prisma.proposal.findUnique({
     where: { id: proposalId },
   });
@@ -168,7 +172,7 @@ export async function rejectProposal(proposalId: number) {
 
   try {
     revalidatePath("/admin/proposals");
-  } catch (e) {
+  } catch {
     // ignore outside Next.js request context
   }
 }

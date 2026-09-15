@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export interface GameFormData {
@@ -22,6 +23,8 @@ export interface GameFormData {
 }
 
 export async function createGame(data: GameFormData) {
+  const user = await requireRole(["admin", "editor"], "/games/new");
+
   if (!data.name || data.name.trim() === "") {
     throw new Error("ゲーム名は必須です");
   }
@@ -85,7 +88,7 @@ export async function createGame(data: GameFormData) {
         gameId: game.id,
         changedField: "created",
         newValue: `ゲーム「${game.name}」を作成`,
-        changedBy: "user",
+        changedBy: user.name,
       },
     });
 
@@ -94,11 +97,13 @@ export async function createGame(data: GameFormData) {
 
   try {
     revalidatePath("/games");
-  } catch (e) {}
+  } catch {}
   redirect(`/games/${result.id}`);
 }
 
 export async function updateGame(gameId: number, data: GameFormData) {
+  const user = await requireRole(["admin", "editor"], `/games/${gameId}/edit`);
+
   if (!data.name || data.name.trim() === "") {
     throw new Error("ゲーム名は必須です");
   }
@@ -170,7 +175,7 @@ export async function updateGame(gameId: number, data: GameFormData) {
         gameId,
         changedField: "updated",
         newValue: `ゲーム「${data.name}」の情報を更新`,
-        changedBy: "user",
+        changedBy: user.name,
       },
     });
   });
@@ -178,6 +183,6 @@ export async function updateGame(gameId: number, data: GameFormData) {
   try {
     revalidatePath(`/games/${gameId}`);
     revalidatePath("/games");
-  } catch (e) {}
+  } catch {}
   redirect(`/games/${gameId}`);
 }

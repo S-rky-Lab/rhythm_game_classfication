@@ -55,9 +55,15 @@ npm install
 
 ```env
 DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/rhythm_game_classification" 
+AUTH_SECRET="openssl rand -base64 32 などで生成したランダム文字列"
+ADMIN_PASSWORD="管理者ログイン用のパスワード"
+# 任意: ログイン時に紐付ける users.name。未指定の場合は最初の admin ユーザーを使います。
+ADMIN_USER_NAME="管理者"
 ```
 
 `.env` には接続情報が含まれるため、GitHubへコミットしないでください。
+
+`/games/new`、`/games/[id]/edit`、`/admin/proposals` と、対応するServer Actionはログイン済みユーザーだけが実行できます。ゲーム登録・編集は `admin` または `editor`、提案承認・却下は `admin` ロールが必要です。
 
 AIによる備考・特徴説明の生成を使う場合は、TinyFish Search APIで検索した上位5件の検索結果を、Google公式の `@google/genai` SDKを通じてGeminiへ渡します。APIキーはGitHubへ公開しないでください。
 
