@@ -59,6 +59,7 @@ const statusOptions = [
   { value: "deprecated", label: "廃止済み" },
 ];
 
+/** Renders the create or edit form for a game record. */
 export default function GameForm({
   initialData,
   categories,

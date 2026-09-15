@@ -19,6 +19,7 @@ const destinations = [
   },
 ];
 
+/** Renders the home page with links to the primary browsing experiences. */
 export default function Home() {
   return (
     <div className="space-y-10">

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import ArchiveTree from "@/components/ArchiveTree";
 import { buildArchiveTree } from "@/lib/archive";
 
+/** Loads all games and renders the categorized archive page. */
 export default async function ArchivePage() {
   const games = await prisma.game.findMany({
     orderBy: { name: "asc" },

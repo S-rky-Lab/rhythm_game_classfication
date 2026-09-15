@@ -26,6 +26,7 @@ export interface NotesGenerationResult {
   error?: string;
 }
 
+/** Returns a required environment variable or throws when it is unavailable. */
 function getRequiredEnv(name: string) {
   const value = process.env[name]?.trim();
   if (!value) {
@@ -34,6 +35,7 @@ function getRequiredEnv(name: string) {
   return value;
 }
 
+/** Converts a Gemini failure into a user-facing error message. */
 function getAiErrorMessage(cause: unknown) {
   const message = cause instanceof Error ? cause.message : String(cause);
   if (
@@ -147,6 +149,7 @@ type TinyFishFetchResponse = {
   errors?: unknown;
 };
 
+/** Searches TinyFish for evidence about a rhythm game. */
 async function searchTinyFish(
   name: string,
   developer?: string,
@@ -241,6 +244,7 @@ async function searchTinyFish(
     .slice(0, 5);
 }
 
+/** Enriches TinyFish search results with fetched page content. */
 async function fetchTinyFishPages(
   searchResults: Awaited<ReturnType<typeof searchTinyFish>>,
   apiKey: string
@@ -321,6 +325,7 @@ async function fetchTinyFishPages(
   });
 }
 
+/** Generates evidence-based notes and associated search metadata. */
 async function generateGameNotesInternal(
   input: NotesGenerationInput
 ): Promise<NotesGenerationResult> {
@@ -427,6 +432,7 @@ async function generateGameNotesInternal(
   };
 }
 
+/** Generates game notes while returning action failures in the result shape. */
 export async function generateGameNotes(
   input: NotesGenerationInput
 ): Promise<NotesGenerationResult> {

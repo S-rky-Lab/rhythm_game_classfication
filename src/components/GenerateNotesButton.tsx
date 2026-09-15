@@ -13,6 +13,7 @@ interface GenerateNotesButtonProps {
   onGenerated: (notes: string) => void;
 }
 
+/** Renders a control that generates game notes from the current form input. */
 export default function GenerateNotesButton({
   input,
   onGenerated,
@@ -21,6 +22,7 @@ export default function GenerateNotesButton({
   const [error, setError] = useState<string | null>(null);
   const [searchResultCount, setSearchResultCount] = useState<number | null>(null);
 
+  /** Requests generated notes and reports the result to the parent form. */
   const handleGenerate = async () => {
     setError(null);
     setSearchResultCount(null);
