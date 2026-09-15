@@ -7,6 +7,7 @@ import type {
   ArchiveGameNode,
 } from "@/lib/archive";
 
+/** Renders a link to a game in the archive. */
 function GameLink({ game }: { game: ArchiveGameNode }) {
   return (
     <Link
@@ -18,6 +19,7 @@ function GameLink({ game }: { game: ArchiveGameNode }) {
   );
 }
 
+/** Renders an expandable archive directory and its nested contents. */
 function Directory({
   directory,
   depth,
@@ -65,6 +67,7 @@ function Directory({
   );
 }
 
+/** Renders the top-level directories in an archive tree. */
 export default function ArchiveTree({
   archive,
 }: {

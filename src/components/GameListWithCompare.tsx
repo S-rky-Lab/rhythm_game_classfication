@@ -44,6 +44,7 @@ interface GameListWithCompareProps {
   games: GameItem[];
 }
 
+/** Renders game results with list, table, and comparison controls. */
 export default function GameListWithCompare({ games }: GameListWithCompareProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);

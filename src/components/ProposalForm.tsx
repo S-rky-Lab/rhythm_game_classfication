@@ -52,6 +52,7 @@ interface ProposalFormProps {
   sources: Source[];
 }
 
+/** Renders a form for proposing changes to an existing game record. */
 export default function ProposalForm({
   gameId,
   initialData,
