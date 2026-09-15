@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import StatusBadge from "@/components/StatusBadge";
 
 export interface GameItem {
   id: number;
@@ -45,6 +44,7 @@ interface GameListWithCompareProps {
   games: GameItem[];
 }
 
+/** Renders game results with list, table, and comparison controls. */
 export default function GameListWithCompare({ games }: GameListWithCompareProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -170,7 +170,7 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={(e) => toggleSelect(game.id)}
+                        onChange={() => toggleSelect(game.id)}
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
                         title="比較対象に選択"
                       />
