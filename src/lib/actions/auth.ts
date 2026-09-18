@@ -6,19 +6,20 @@ import {
   createSession,
   getSafeRedirectPath,
 } from "@/lib/auth";
+import { verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 
 export async function login(formData: FormData) {
   const password = String(formData.get("password") || "");
   const redirectTo = getSafeRedirectPath(formData.get("redirectTo"));
-  const configuredPassword = process.env.ADMIN_PASSWORD?.trim();
-
-  if (!configuredPassword || password !== configuredPassword) {
-    redirect(`/login?error=1&redirectTo=${encodeURIComponent(redirectTo)}`);
-  }
 
   const preferredName = process.env.ADMIN_USER_NAME?.trim();
-  const userSelect = { id: true, name: true, role: true } as const;
+  const userSelect = {
+    id: true,
+    name: true,
+    role: true,
+    passwordHash: true,
+  } as const;
   const adminUser = preferredName
     ? (await prisma.user.findFirst({
         where: { name: preferredName, role: "admin" },
@@ -35,7 +36,12 @@ export async function login(formData: FormData) {
         select: userSelect,
       });
 
-  if (!adminUser || adminUser.role !== "admin") {
+  if (
+    !adminUser ||
+    adminUser.role !== "admin" ||
+    !adminUser.passwordHash ||
+    !(await verifyPassword(password, adminUser.passwordHash))
+  ) {
     redirect(`/login?error=1&redirectTo=${encodeURIComponent(redirectTo)}`);
   }
 

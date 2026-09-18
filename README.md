@@ -56,12 +56,19 @@ npm install
 ```env
 DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/rhythm_game_classification" 
 AUTH_SECRET="openssl rand -base64 32 などで生成したランダム文字列"
-ADMIN_PASSWORD="管理者ログイン用のパスワード"
+ADMIN_PASSWORD="初回seed時に管理者へ設定するパスワード"
 # 任意: ログイン時に紐付ける users.name。未指定の場合は最初の admin ユーザーを使います。
 ADMIN_USER_NAME="管理者"
 ```
 
 `.env` には接続情報が含まれるため、GitHubへコミットしないでください。
+`ADMIN_PASSWORD` は初期ユーザー作成時または管理者パスワード更新時だけ使用します。既存データを保持したままパスワードを変更する場合は、`npx prisma db seed` ではなく、次の専用コマンドを実行してください。
+
+```bash
+npm run set-admin-password
+```
+
+このコマンドは `users` テーブルの管理者1名の `password_hash` だけを更新します。対象名は任意の `ADMIN_USER_NAME` で指定でき、該当しない場合は最初の `admin` ユーザーが対象になります。`prisma db seed` は既存データを削除するため、本番DBでは実行しないでください。
 
 `/games/new`、`/games/[id]/edit`、`/admin/proposals` と、対応するServer Actionはログイン済みユーザーだけが実行できます。ゲーム登録・編集は `admin` または `editor`、提案承認・却下は `admin` ロールが必要です。
 
@@ -109,10 +116,11 @@ npm run dev
 
 ```bash
 npm run build
+npm run deploy
 npm run start
 ```
 
-`npm run build` では、Prisma Clientの生成、マイグレーションの適用、Next.jsのビルドを順番に実行します。本番環境では、デプロイ先からアクセスできるPostgreSQLの `DATABASE_URL` を設定してください。
+`npm run deploy` は、マイグレーション適用後に `ADMIN_PASSWORD` で管理者のパスワードハッシュを初期化し、少なくとも1人の管理者にハッシュがあることを検証します。`ADMIN_PASSWORD` が未設定の場合や管理者が存在しない場合はデプロイに失敗します。`npm run start` も起動前に同じ検証を行うため、ハッシュ未設定のデータベースではアプリケーションを起動しません。本番環境では、デプロイ先からアクセスできるPostgreSQLの `DATABASE_URL` と `ADMIN_PASSWORD` を設定してください。
 
 ## 開発用コマンド
 
