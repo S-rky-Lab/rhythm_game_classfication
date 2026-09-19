@@ -1,9 +1,12 @@
 import React from "react";
 import Link from "next/link";
+import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import GameForm from "@/components/GameForm";
 
 export default async function NewGamePage() {
+  await requireRole(["admin", "editor"], "/games/new");
+
   const categories = await prisma.category.findMany({
     orderBy: { displayOrder: "asc" },
     include: {

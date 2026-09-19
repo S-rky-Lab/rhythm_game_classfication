@@ -130,10 +130,11 @@ model History {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  role      String   @default("viewer") // admin / editor / viewer
-  createdAt DateTime @default(now()) @map("created_at")
+  id           Int      @id @default(autoincrement())
+  name         String
+  role         String   @default("viewer") // admin / editor / viewer
+  passwordHash String?  @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   @@map("users")
 }

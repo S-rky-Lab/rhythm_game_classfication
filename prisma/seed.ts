@@ -1,11 +1,16 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-import path from "node:path";
+import { hashPassword } from "../src/lib/password";
+
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("DATABASE_URL is not set");
+}
 
 const prisma = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({
-    url: path.join(process.cwd(), "prisma", "dev.db"),
-  }),
+  adapter: new PrismaPg({ connectionString }),
 });
 
 type CategoryWithOptions = {
@@ -15,6 +20,11 @@ type CategoryWithOptions = {
 
 async function main() {
   console.log("Seeding database without detailed attributes...");
+  const adminPassword = process.env.ADMIN_PASSWORD?.trim();
+
+  if (!adminPassword) {
+    throw new Error("ADMIN_PASSWORD is required to seed the admin user");
+  }
 
   // クリーンアップ
   await prisma.proposal.deleteMany();
@@ -32,7 +42,11 @@ async function main() {
 
   // 1. ユーザー作成
   await prisma.user.create({
-    data: { name: "管理者", role: "admin" },
+    data: {
+      name: "管理者",
+      role: "admin",
+      passwordHash: await hashPassword(adminPassword),
+    },
   });
   await prisma.user.create({
     data: { name: "編集者", role: "editor" },

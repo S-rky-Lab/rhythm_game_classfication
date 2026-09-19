@@ -1,9 +1,12 @@
 import React from "react";
 import Link from "next/link";
+import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ProposalListManager from "@/components/ProposalListManager";
 
 export default async function AdminProposalsPage() {
+  await requireRole(["admin"], "/admin/proposals");
+
   const proposals = await prisma.proposal.findMany({
     orderBy: { createdAt: "desc" },
     include: {

@@ -48,7 +48,6 @@ interface GameListWithCompareProps {
 export default function GameListWithCompare({ games }: GameListWithCompareProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [viewMode, setViewMode] = useState<"table" | "list">("table");
 
   const toggleSelect = (id: number, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -88,37 +87,6 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
             （タイトルまたは行をクリックで詳細ページへ遷移）
           </span>
         </div>
-
-        <div className="flex items-center gap-1 bg-white dark:bg-zinc-800 p-1 rounded-lg border border-gray-200 dark:border-zinc-700">
-          <button
-            type="button"
-            onClick={() => setViewMode("table")}
-            className={`px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
-              viewMode === "table"
-                ? "bg-indigo-600 text-white shadow-xs"
-                : "text-gray-600 dark:text-gray-300 hover:text-gray-900"
-            }`}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            <span>表形式（コンパクト）</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("list")}
-            className={`px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
-              viewMode === "list"
-                ? "bg-indigo-600 text-white shadow-xs"
-                : "text-gray-600 dark:text-gray-300 hover:text-gray-900"
-            }`}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-            <span>カード/リスト</span>
-          </button>
-        </div>
       </div>
 
       {games.length === 0 ? (
@@ -126,8 +94,7 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
           <p className="text-gray-500 text-sm">該当するゲームが見つかりませんでした。</p>
           <p className="text-xs text-gray-400 mt-1">検索条件を変更するかリセットしてください。</p>
         </div>
-      ) : viewMode === "table" ? (
-        /* --- 1. 高密度・コンパクト表形式 (テーブル) --- */
+      ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -139,7 +106,6 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
                 <th className="py-2.5 px-3 min-w-36">操作方式</th>
                 <th className="py-2.5 px-3 min-w-36">レーン・ノーツ方式</th>
                 <th className="py-2.5 px-3 min-w-32">プラットフォーム</th>
-                <th className="py-2.5 px-3 text-right pr-4">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
@@ -158,9 +124,8 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
                   <tr
                     key={game.id}
                     onClick={() => handleRowClick(game.id)}
-                    className={`hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 cursor-pointer transition ${
-                      isSelected ? "bg-indigo-50/60 dark:bg-indigo-950/30" : ""
-                    }`}
+                    className={`hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 cursor-pointer transition ${isSelected ? "bg-indigo-50/60 dark:bg-indigo-950/30" : ""
+                      }`}
                   >
                     {/* 比較チェック */}
                     <td
@@ -266,110 +231,11 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
                         {platformText || "-"}
                       </span>
                     </td>
-
-                    {/* 操作 */}
-                    <td
-                      className="py-2.5 px-3 text-right pr-4 whitespace-nowrap"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Link
-                        href={`/games/${game.id}`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 font-medium text-[11px] transition"
-                      >
-                        <span>専用ページ</span>
-                        <span>&rarr;</span>
-                      </Link>
-                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-        </div>
-      ) : (
-        /* --- 2. リスト形式（コンパクトカード） --- */
-        <div className="divide-y divide-gray-100 dark:divide-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
-          {games.map((game) => {
-            const isSelected = selectedIds.includes(game.id);
-
-            return (
-              <div
-                key={game.id}
-                onClick={() => handleRowClick(game.id)}
-                className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 dark:hover:bg-zinc-800/40 cursor-pointer transition ${
-                  isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className="pt-0.5"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleSelect(game.id)}
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    {game.reading && (
-                      <div className="text-[10px] text-gray-400 leading-tight">
-                        {game.reading}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Link
-                        href={`/games/${game.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-base font-bold text-gray-900 dark:text-zinc-100 hover:text-indigo-600 transition"
-                      >
-                        {game.name}
-                      </Link>
-                      {game.abbreviation && (
-                        <span className="text-xs px-2 py-0.2 rounded bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300">
-                          {game.abbreviation}
-                        </span>
-                      )}
-                      {game.developer && (
-                        <span className="text-xs text-gray-400">
-                          · {game.developer}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {game.categories.map((gc) => (
-                        <span
-                          key={gc.categoryOption.id}
-                          className="inline-flex items-center text-[11px] px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900"
-                        >
-                          <span className="opacity-60 mr-1">
-                            {gc.categoryOption.category.name}:
-                          </span>
-                          {gc.categoryOption.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className="flex items-center gap-2 self-end sm:self-center"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Link
-                    href={`/games/${game.id}`}
-                    className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-xs transition flex items-center gap-1"
-                  >
-                    <span>専用ページへ</span>
-                    <span>&rarr;</span>
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
         </div>
       )}
 
