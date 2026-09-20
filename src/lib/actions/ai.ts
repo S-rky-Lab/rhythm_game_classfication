@@ -3,6 +3,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { headers } from "next/headers";
 import { NOTE_REFERENCE_GAMES } from "@/lib/ai/sample-games";
+import { evaluateTinyFishEvidence } from "@/lib/ai/jev";
 
 const NO_INFORMATION = "情報が有りませんでした";
 const AI_GENERATION_ERROR_MESSAGE = "AI生成に失敗しました";
@@ -354,6 +355,25 @@ async function generateGameNotesInternal(
     console.warn("TinyFish本文取得をスキップしました", {
       cause: maskErrorCause(cause),
     });
+  }
+
+  console.log(
+    "TinyFish evidence for Jev:",
+    JSON.stringify(enrichedSearchResults, null, 2),
+  );
+
+  const jevResult = await evaluateTinyFishEvidence({
+    gameName: input.name,
+    developer: input.developer,
+    officialUrl: input.officialUrl,
+    searchResults: enrichedSearchResults,
+  });
+
+  if (!jevResult.accepted) {
+    return {
+      notes: NO_INFORMATION,
+      searchResultCount: searchResults.length,
+    };
   }
 
   const apiKey = getRequiredEnv("GEMINI_API_KEY");
