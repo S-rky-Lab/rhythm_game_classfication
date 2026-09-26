@@ -3,6 +3,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { headers } from "next/headers";
 import { NOTE_REFERENCE_GAMES } from "@/lib/ai/sample-games";
+import { evaluateTinyFishEvidence } from "@/lib/ai/jev";
 
 const NO_INFORMATION = "情報が有りませんでした";
 const AI_GENERATION_ERROR_MESSAGE = "AI生成に失敗しました";
@@ -49,13 +50,16 @@ function getAiErrorMessage(cause: unknown) {
   return "Gemini APIの呼び出しに失敗しました。APIキー、モデル名、利用設定を確認してください。";
 }
 
-function maskErrorCause(cause: unknown) {
+function maskErrorCause(cause: unknown, context?: "Jev") {
   const message = cause instanceof Error ? cause.message : String(cause);
   if (/429|RESOURCE_EXHAUSTED|quota|exceeded/i.test(message)) {
     return "rate_or_quota";
   }
-  if (/TINYFISH_API_KEY|GEMINI_API_KEY|GEMINI_MODEL|設定されていません/i.test(message)) {
+  if (/TINYFISH_API_KEY|TYPESAFE_API_KEY|GEMINI_API_KEY|GEMINI_MODEL|設定されていません/i.test(message)) {
     return "configuration";
+  }
+  if (context === "Jev") {
+    return /rate limit/i.test(message) ? "rate_limit" : "search_provider";
   }
   if (/TinyFish/i.test(message)) {
     return "search_provider";
@@ -354,6 +358,36 @@ async function generateGameNotesInternal(
     console.warn("TinyFish本文取得をスキップしました", {
       cause: maskErrorCause(cause),
     });
+  }
+
+  console.debug("TinyFish evidence for Jev:", {
+    resultCount: enrichedSearchResults.length,
+    urls: enrichedSearchResults.map((result) => result.url),
+  });
+
+  let jevResult;
+  try {
+    jevResult = await evaluateTinyFishEvidence({
+      gameName: input.name,
+      developer: input.developer,
+      officialUrl: input.officialUrl,
+      searchResults: enrichedSearchResults,
+    });
+  } catch (cause) {
+    console.warn("Jev evidence evaluation failed", {
+      cause: maskErrorCause(cause, "Jev"),
+    });
+    return {
+      notes: NO_INFORMATION,
+      searchResultCount: searchResults.length,
+    };
+  }
+
+  if (!jevResult.accepted) {
+    return {
+      notes: NO_INFORMATION,
+      searchResultCount: searchResults.length,
+    };
   }
 
   const apiKey = getRequiredEnv("GEMINI_API_KEY");
