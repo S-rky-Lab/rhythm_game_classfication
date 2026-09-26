@@ -40,10 +40,10 @@ export default async function GamesPage({ searchParams }: PageProps) {
   if (q.trim() !== "") {
     whereConditions.push({
       OR: [
-        { name: { contains: q.trim() } },
-        { reading: { contains: q.trim() } },
-        { abbreviation: { contains: q.trim() } },
-        { developer: { contains: q.trim() } },
+        { name: { contains: q.trim(), mode: "insensitive" } },
+        { reading: { contains: q.trim(), mode: "insensitive" } },
+        { abbreviation: { contains: q.trim(), mode: "insensitive" } },
+        { developer: { contains: q.trim(), mode: "insensitive" } },
       ],
     });
   }
