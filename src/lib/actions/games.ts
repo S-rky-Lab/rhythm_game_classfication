@@ -95,9 +95,7 @@ export async function createGame(data: GameFormData) {
     return game;
   });
 
-  try {
-    revalidatePath("/games");
-  } catch {}
+  revalidatePath("/games");
   redirect(`/games/${result.id}`);
 }
 
@@ -180,9 +178,7 @@ export async function updateGame(gameId: number, data: GameFormData) {
     });
   });
 
-  try {
-    revalidatePath(`/games/${gameId}`);
-    revalidatePath("/games");
-  } catch {}
+  revalidatePath(`/games/${gameId}`);
+  revalidatePath("/games");
   redirect(`/games/${gameId}`);
 }

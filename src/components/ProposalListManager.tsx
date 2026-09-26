@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import Link from "next/link";
 import { approveProposal, rejectProposal } from "@/lib/actions/proposals";
 import { GameFormData } from "@/lib/actions/games";
@@ -31,19 +31,32 @@ export default function ProposalListManager({
   allCategories,
 }: ProposalListManagerProps) {
   const [isPending, startTransition] = useTransition();
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleApprove = (id: number) => {
     if (confirm("この提案を承認してゲーム情報に反映しますか？")) {
+      setActionError(null);
       startTransition(async () => {
-        await approveProposal(id);
+        try {
+          await approveProposal(id);
+        } catch (error) {
+          console.error("Failed to approve proposal", error);
+          setActionError("提案を承認できませんでした。時間をおいて再度お試しください。");
+        }
       });
     }
   };
 
   const handleReject = (id: number) => {
     if (confirm("この提案を却下しますか？")) {
+      setActionError(null);
       startTransition(async () => {
-        await rejectProposal(id);
+        try {
+          await rejectProposal(id);
+        } catch (error) {
+          console.error("Failed to reject proposal", error);
+          setActionError("提案を却下できませんでした。時間をおいて再度お試しください。");
+        }
       });
     }
   };
@@ -61,6 +74,15 @@ export default function ProposalListManager({
 
   return (
     <div className="space-y-8">
+      {actionError && (
+        <p
+          role="alert"
+          className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+        >
+          {actionError}
+        </p>
+      )}
+
       {/* 承認待ちセクション */}
       <div className="space-y-4">
         <h2 className="text-lg font-bold text-gray-900 dark:text-zinc-100 flex items-center gap-2">
@@ -78,10 +100,11 @@ export default function ProposalListManager({
           <div className="space-y-4">
             {pendingProposals.map((prop) => {
               let parsedData: GameFormData | null = null;
+              let hasInvalidData = false;
               try {
                 parsedData = JSON.parse(prop.proposedData);
-              } catch (e) {
-                // invalid JSON
+              } catch {
+                hasInvalidData = true;
               }
 
               return (
@@ -121,7 +144,7 @@ export default function ProposalListManager({
                       </button>
                       <button
                         type="button"
-                        disabled={isPending}
+                        disabled={isPending || hasInvalidData}
                         onClick={() => handleApprove(prop.id)}
                         className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow transition cursor-pointer flex items-center gap-1.5"
                       >
@@ -142,6 +165,15 @@ export default function ProposalListManager({
                       </div>
                     )}
                   </div>
+
+                  {hasInvalidData && (
+                    <p
+                      role="alert"
+                      className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+                    >
+                      提案データを読み込めません。JSON形式が不正なため承認できませんが、却下はできます。
+                    </p>
+                  )}
 
                   {/* 提案内容プレビュー */}
                   {parsedData && (

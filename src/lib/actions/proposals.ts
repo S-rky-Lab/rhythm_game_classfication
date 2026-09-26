@@ -29,11 +29,7 @@ export async function submitProposal(input: ProposalInput) {
     },
   });
 
-  try {
-    revalidatePath("/admin/proposals");
-  } catch {
-    // ignore outside Next.js request context
-  }
+  revalidatePath("/admin/proposals");
   return proposal;
 }
 
@@ -144,12 +140,8 @@ export async function approveProposal(proposalId: number) {
     });
   });
 
-  try {
-    revalidatePath("/admin/proposals");
-    revalidatePath("/games");
-  } catch {
-    // ignore outside Next.js request context
-  }
+  revalidatePath("/admin/proposals");
+  revalidatePath("/games");
 }
 
 export async function rejectProposal(proposalId: number) {
@@ -170,9 +162,5 @@ export async function rejectProposal(proposalId: number) {
     },
   });
 
-  try {
-    revalidatePath("/admin/proposals");
-  } catch {
-    // ignore outside Next.js request context
-  }
+  revalidatePath("/admin/proposals");
 }
