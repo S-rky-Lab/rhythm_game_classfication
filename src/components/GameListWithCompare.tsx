@@ -42,10 +42,16 @@ export interface GameItem {
 
 interface GameListWithCompareProps {
   games: GameItem[];
+  totalCount: number;
+  resultStart: number;
 }
 
 /** Renders game results with list, table, and comparison controls. */
-export default function GameListWithCompare({ games }: GameListWithCompareProps) {
+export default function GameListWithCompare({
+  games,
+  totalCount,
+  resultStart,
+}: GameListWithCompareProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -81,7 +87,9 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400 px-1">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-700 dark:text-gray-300">
-            該当件数: {games.length} 件
+            該当件数: {totalCount} 件
+            {totalCount > 0 &&
+              `（${resultStart}〜${resultStart + games.length - 1} 件を表示）`}
           </span>
           <span className="hidden sm:inline text-gray-400">
             （タイトルまたは行をクリックで詳細ページへ遷移）
