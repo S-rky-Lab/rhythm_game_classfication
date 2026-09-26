@@ -18,11 +18,6 @@ interface Category {
   options: CategoryOption[];
 }
 
-interface Attribute {
-  id: number;
-  name: string;
-}
-
 interface Source {
   id: number;
   name: string;
@@ -39,7 +34,6 @@ interface ProposalFormProps {
     officialUrl?: string | null;
     notes?: string | null;
     categoryOptionIds: number[];
-    attributes?: { attributeId: number; value: string }[];
     fieldStatuses: {
       fieldName: string;
       status: string;
@@ -48,7 +42,6 @@ interface ProposalFormProps {
     }[];
   };
   categories: Category[];
-  attributes?: Attribute[];
   sources: Source[];
 }
 
@@ -120,7 +113,6 @@ export default function ProposalForm({
       officialUrl,
       notes,
       categoryOptionIds: selectedOptionIds,
-      attributes: [], // 詳細属性は不使用
       fieldStatuses: Object.entries(statusMap)
         .filter(([, data]) => data.status)
         .map(([fieldName, data]) => ({

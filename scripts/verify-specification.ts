@@ -36,9 +36,6 @@ async function verifySpecification() {
           },
         },
       },
-      attributes: {
-        include: { attribute: true },
-      },
     },
     orderBy: { id: "asc" },
   });

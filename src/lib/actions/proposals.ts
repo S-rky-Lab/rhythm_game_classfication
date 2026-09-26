@@ -87,21 +87,6 @@ export async function approveProposal(proposalId: number) {
       });
     }
 
-    // 属性差し替え
-    await tx.gameAttribute.deleteMany({ where: { gameId: targetGameId } });
-    if (data.attributes && data.attributes.length > 0) {
-      const validAttrs = data.attributes.filter((a) => a.value && a.value.trim() !== "");
-      if (validAttrs.length > 0) {
-        await tx.gameAttribute.createMany({
-          data: validAttrs.map((a) => ({
-            gameId: targetGameId!,
-            attributeId: a.attributeId,
-            value: a.value.trim(),
-          })),
-        });
-      }
-    }
-
     // ステータス差し替え
     await tx.gameFieldStatus.deleteMany({ where: { gameId: targetGameId } });
     if (data.fieldStatuses && data.fieldStatuses.length > 0) {

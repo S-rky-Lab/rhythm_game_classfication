@@ -91,11 +91,6 @@ export default async function GamesPage({ searchParams }: PageProps) {
           },
         },
       },
-      attributes: {
-        include: {
-          attribute: true,
-        },
-      },
       fieldStatuses: {
         include: {
           source: true,

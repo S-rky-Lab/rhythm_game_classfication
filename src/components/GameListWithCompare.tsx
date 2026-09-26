@@ -22,13 +22,6 @@ export interface GameItem {
       };
     };
   }[];
-  attributes: {
-    attribute: {
-      id: number;
-      name: string;
-    };
-    value: string;
-  }[];
   fieldStatuses: {
     fieldName: string;
     status: string;
@@ -76,11 +69,6 @@ export default function GameListWithCompare({
       .map((gc) => gc.categoryOption.name);
   };
 
-  // 属性値を取り出すヘルパー
-  const getAttributeValue = (game: GameItem, attrName: string) => {
-    return game.attributes.find((ga) => ga.attribute.name === attrName)?.value;
-  };
-
   return (
     <div className="space-y-3 relative pb-24">
       {/* ツールバー: 件数と表示形式切替 */}
@@ -123,10 +111,7 @@ export default function GameListWithCompare({
                 const operations = getCategoryOptions(game, "操作方式");
                 const lanes = getCategoryOptions(game, "レーン・ノーツ方式");
                 const platforms = getCategoryOptions(game, "プラットフォーム");
-                const platformText =
-                  platforms.length > 0
-                    ? platforms.join(", ")
-                    : getAttributeValue(game, "プラットフォーム");
+                const platformText = platforms.join(", ");
 
                 return (
                   <tr

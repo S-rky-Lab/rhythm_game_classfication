@@ -8,7 +8,6 @@ async function runVerification() {
   const games = await prisma.game.findMany({
     include: {
       categories: { include: { categoryOption: { include: { category: true } } } },
-      attributes: { include: { attribute: true } },
       fieldStatuses: true,
     },
   });
@@ -60,10 +59,6 @@ async function runVerification() {
       officialUrl: testGame.officialUrl || undefined,
       notes: testGame.notes || undefined,
       categoryOptionIds: testGame.categories.map((c) => c.categoryOptionId),
-      attributes: testGame.attributes.map((a) => ({
-        attributeId: a.attributeId,
-        value: a.value,
-      })),
       fieldStatuses: testGame.fieldStatuses.map((fs) => ({
         fieldName: fs.fieldName,
         status: fs.status,

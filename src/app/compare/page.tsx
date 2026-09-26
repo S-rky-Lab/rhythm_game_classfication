@@ -32,11 +32,6 @@ export default async function ComparePage({ searchParams }: PageProps) {
                 },
               },
             },
-            attributes: {
-              include: {
-                attribute: true,
-              },
-            },
           },
         })
       : [];

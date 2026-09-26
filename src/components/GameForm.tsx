@@ -16,11 +16,6 @@ interface Category {
   options: CategoryOption[];
 }
 
-interface Attribute {
-  id: number;
-  name: string;
-}
-
 interface Source {
   id: number;
   name: string;
@@ -37,7 +32,6 @@ interface GameFormProps {
     officialUrl?: string | null;
     notes?: string | null;
     categoryOptionIds: number[];
-    attributes?: { attributeId: number; value: string }[];
     fieldStatuses: {
       fieldName: string;
       status: string;
@@ -46,7 +40,6 @@ interface GameFormProps {
     }[];
   };
   categories: Category[];
-  attributes?: Attribute[];
   sources: Source[];
   mode: "create" | "edit";
 }
@@ -140,7 +133,6 @@ export default function GameForm({
       officialUrl,
       notes,
       categoryOptionIds: selectedOptionIds,
-      attributes: [], // 詳細属性は現在使用しない
       fieldStatuses: Object.entries(statusMap)
         .filter(([, data]) => data.status)
         .map(([fieldName, data]) => ({
