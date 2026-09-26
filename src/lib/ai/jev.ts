@@ -21,13 +21,23 @@ export interface JevEvidenceResult {
   accepted: boolean;
 }
 
-type JevAnswer = {
-  noul?: number;
-};
+function readScore(answers: unknown, key: string): number {
+  const answer =
+    typeof answers === "object" && answers !== null && key in answers
+      ? (answers as Record<string, unknown>)[key]
+      : undefined;
+  const score =
+    typeof answer === "object" && answer !== null && "noul" in answer
+      ? answer.noul
+      : undefined;
 
-type JevResponse = {
-  answers?: Record<string, JevAnswer>;
-};
+  if (typeof score !== "number" || !Number.isFinite(score)) {
+    console.warn("Jev score is missing or invalid", { question: key });
+    return 0;
+  }
+
+  return score;
+}
 
 export async function evaluateTinyFishEvidence(
   input: JevEvidenceInput,
@@ -106,14 +116,15 @@ export async function evaluateTinyFishEvidence(
     throw new Error(`Jev API error: ${response.status}`);
   }
 
-  const payload = (await response.json()) as JevResponse;
-  const answers = payload.answers ?? {};
+  const payload: unknown = await response.json();
+  const answers =
+    typeof payload === "object" && payload !== null && "answers" in payload
+      ? payload.answers
+      : undefined;
 
-  const sourceMatchesGame =
-    answers.source_matches_game?.noul ?? 0;
+  const sourceMatchesGame = readScore(answers, "source_matches_game");
 
-  const evidenceSufficient =
-    answers.evidence_sufficient?.noul ?? 0;
+  const evidenceSufficient = readScore(answers, "evidence_sufficient");
 
   console.log("Jev evaluation:", {
     sourceMatchesGame,
