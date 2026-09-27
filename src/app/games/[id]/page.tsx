@@ -31,11 +31,6 @@ export default async function GameDetailPage({ params }: PageProps) {
           },
         },
       },
-      attributes: {
-        include: {
-          attribute: true,
-        },
-      },
       fieldStatuses: {
         include: {
           source: true,
@@ -100,11 +95,6 @@ export default async function GameDetailPage({ params }: PageProps) {
               category: true,
             },
           },
-        },
-      },
-      attributes: {
-        include: {
-          attribute: true,
         },
       },
     },

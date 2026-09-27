@@ -22,21 +22,9 @@ interface GameDetail {
       };
     };
   }[];
-  attributes: {
-    attribute: {
-      id: number;
-      name: string;
-    };
-    value: string;
-  }[];
 }
 
 interface MasterCategory {
-  id: number;
-  name: string;
-}
-
-interface MasterAttribute {
   id: number;
   name: string;
 }
@@ -45,14 +33,12 @@ interface CompareTableProps {
   games: GameDetail[];
   allGames: { id: number; name: string }[];
   allCategories: MasterCategory[];
-  allAttributes?: MasterAttribute[];
 }
 
 export default function CompareTable({
   games,
   allGames,
   allCategories,
-  allAttributes,
 }: CompareTableProps) {
   const router = useRouter();
   const [selectedAddId, setSelectedAddId] = useState<string>("");
@@ -90,16 +76,6 @@ export default function CompareTable({
       catMap.get(cName)!.push(gc.categoryOption.name);
     });
     gameCatMap.set(game.id, catMap);
-  });
-
-  // 属性のマッピング: gameId -> (attributeName -> value)
-  const gameAttrMap = new Map<number, Map<string, string>>();
-  games.forEach((game) => {
-    const attrMap = new Map<string, string>();
-    game.attributes.forEach((ga) => {
-      attrMap.set(ga.attribute.name, ga.value);
-    });
-    gameAttrMap.set(game.id, attrMap);
   });
 
   return (
@@ -199,7 +175,7 @@ export default function CompareTable({
             <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
               {/* 基本情報行 */}
               <tr>
-                <td className="p-4 font-semibold text-gray-500 bg-gray-50/40 dark:bg-zinc-800/30 sticky left-0 bg-white dark:bg-zinc-900 z-10">
+                <td className="p-4 font-semibold text-gray-500 sticky left-0 bg-white dark:bg-zinc-900 z-10">
                   開発・運営
                 </td>
                 {games.map((g) => (
@@ -210,7 +186,7 @@ export default function CompareTable({
               </tr>
 
               <tr>
-                <td className="p-4 font-semibold text-gray-500 bg-gray-50/40 dark:bg-zinc-800/30 sticky left-0 bg-white dark:bg-zinc-900 z-10">
+                <td className="p-4 font-semibold text-gray-500 sticky left-0 bg-white dark:bg-zinc-900 z-10">
                   公式サイト
                 </td>
                 {games.map((g) => (
@@ -251,7 +227,7 @@ export default function CompareTable({
                     key={cat.id}
                     className={isDifferent ? "bg-amber-50/20 dark:bg-amber-950/10" : ""}
                   >
-                    <td className="p-4 font-semibold text-gray-700 dark:text-gray-300 bg-gray-50/40 dark:bg-zinc-800/30 sticky left-0 bg-white dark:bg-zinc-900 z-10 flex items-center justify-between">
+                    <td className="p-4 font-semibold text-gray-700 dark:text-gray-300 sticky left-0 bg-white dark:bg-zinc-900 z-10 flex items-center justify-between">
                       <span>{cat.name}</span>
                       {isDifferent && (
                         <span className="text-[10px] bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 px-1.5 py-0.2 rounded">
@@ -290,7 +266,7 @@ export default function CompareTable({
 
               {/* 備考行 */}
               <tr>
-                <td className="p-4 font-semibold text-gray-500 bg-gray-50/40 dark:bg-zinc-800/30 sticky left-0 bg-white dark:bg-zinc-900 z-10">
+                <td className="p-4 font-semibold text-gray-500 sticky left-0 bg-white dark:bg-zinc-900 z-10">
                   特徴・備考
                 </td>
                 {games.map((g) => (

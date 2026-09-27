@@ -22,13 +22,6 @@ export interface GameItem {
       };
     };
   }[];
-  attributes: {
-    attribute: {
-      id: number;
-      name: string;
-    };
-    value: string;
-  }[];
   fieldStatuses: {
     fieldName: string;
     status: string;
@@ -42,10 +35,16 @@ export interface GameItem {
 
 interface GameListWithCompareProps {
   games: GameItem[];
+  totalCount: number;
+  resultStart: number;
 }
 
 /** Renders game results with list, table, and comparison controls. */
-export default function GameListWithCompare({ games }: GameListWithCompareProps) {
+export default function GameListWithCompare({
+  games,
+  totalCount,
+  resultStart,
+}: GameListWithCompareProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -70,18 +69,15 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
       .map((gc) => gc.categoryOption.name);
   };
 
-  // 属性値を取り出すヘルパー
-  const getAttributeValue = (game: GameItem, attrName: string) => {
-    return game.attributes.find((ga) => ga.attribute.name === attrName)?.value;
-  };
-
   return (
     <div className="space-y-3 relative pb-24">
       {/* ツールバー: 件数と表示形式切替 */}
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400 px-1">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-700 dark:text-gray-300">
-            該当件数: {games.length} 件
+            該当件数: {totalCount} 件
+            {totalCount > 0 &&
+              `（${resultStart}〜${resultStart + games.length - 1} 件を表示）`}
           </span>
           <span className="hidden sm:inline text-gray-400">
             （タイトルまたは行をクリックで詳細ページへ遷移）
@@ -115,10 +111,7 @@ export default function GameListWithCompare({ games }: GameListWithCompareProps)
                 const operations = getCategoryOptions(game, "操作方式");
                 const lanes = getCategoryOptions(game, "レーン・ノーツ方式");
                 const platforms = getCategoryOptions(game, "プラットフォーム");
-                const platformText =
-                  platforms.length > 0
-                    ? platforms.join(", ")
-                    : getAttributeValue(game, "プラットフォーム");
+                const platformText = platforms.join(", ");
 
                 return (
                   <tr

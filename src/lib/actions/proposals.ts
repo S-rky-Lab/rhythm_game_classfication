@@ -29,11 +29,7 @@ export async function submitProposal(input: ProposalInput) {
     },
   });
 
-  try {
-    revalidatePath("/admin/proposals");
-  } catch {
-    // ignore outside Next.js request context
-  }
+  revalidatePath("/admin/proposals");
   return proposal;
 }
 
@@ -91,21 +87,6 @@ export async function approveProposal(proposalId: number) {
       });
     }
 
-    // 属性差し替え
-    await tx.gameAttribute.deleteMany({ where: { gameId: targetGameId } });
-    if (data.attributes && data.attributes.length > 0) {
-      const validAttrs = data.attributes.filter((a) => a.value && a.value.trim() !== "");
-      if (validAttrs.length > 0) {
-        await tx.gameAttribute.createMany({
-          data: validAttrs.map((a) => ({
-            gameId: targetGameId!,
-            attributeId: a.attributeId,
-            value: a.value.trim(),
-          })),
-        });
-      }
-    }
-
     // ステータス差し替え
     await tx.gameFieldStatus.deleteMany({ where: { gameId: targetGameId } });
     if (data.fieldStatuses && data.fieldStatuses.length > 0) {
@@ -144,12 +125,8 @@ export async function approveProposal(proposalId: number) {
     });
   });
 
-  try {
-    revalidatePath("/admin/proposals");
-    revalidatePath("/games");
-  } catch {
-    // ignore outside Next.js request context
-  }
+  revalidatePath("/admin/proposals");
+  revalidatePath("/games");
 }
 
 export async function rejectProposal(proposalId: number) {
@@ -170,9 +147,5 @@ export async function rejectProposal(proposalId: number) {
     },
   });
 
-  try {
-    revalidatePath("/admin/proposals");
-  } catch {
-    // ignore outside Next.js request context
-  }
+  revalidatePath("/admin/proposals");
 }

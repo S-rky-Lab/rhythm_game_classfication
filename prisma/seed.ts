@@ -19,7 +19,7 @@ type CategoryWithOptions = {
 };
 
 async function main() {
-  console.log("Seeding database without detailed attributes...");
+  console.log("Seeding database...");
   const adminPassword = process.env.ADMIN_PASSWORD?.trim();
 
   if (!adminPassword) {
@@ -31,11 +31,9 @@ async function main() {
   await prisma.history.deleteMany();
   await prisma.gameFieldStatus.deleteMany();
   await prisma.gameRelation.deleteMany();
-  await prisma.gameAttribute.deleteMany();
   await prisma.gameCategory.deleteMany();
   await prisma.categoryOption.deleteMany();
   await prisma.category.deleteMany();
-  await prisma.attribute.deleteMany();
   await prisma.source.deleteMany();
   await prisma.user.deleteMany();
   await prisma.game.deleteMany();
@@ -395,7 +393,7 @@ async function main() {
     },
   });
 
-  console.log("Database seeded successfully without attributes!");
+  console.log("Database seeded successfully!");
 }
 
 main()
