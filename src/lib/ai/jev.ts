@@ -1,5 +1,6 @@
+import settings from "@/lib/settings";
+
 const JEV_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
-const JEV_MODEL = "jev-latest";
 
 export interface JevEvidenceInput {
   gameName: string;
@@ -55,7 +56,7 @@ export async function evaluateTinyFishEvidence(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: JEV_MODEL,
+      model: settings.models.jev,
       state: {
         targetGame: {
           name: input.gameName,

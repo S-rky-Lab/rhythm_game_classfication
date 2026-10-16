@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { headers } from "next/headers";
 import { NOTE_REFERENCE_GAMES } from "@/lib/ai/sample-games";
 import { evaluateTinyFishEvidence } from "@/lib/ai/jev";
+import settings from "@/lib/settings";
 
 const NO_INFORMATION = "情報が有りませんでした";
 const AI_GENERATION_ERROR_MESSAGE = "AI生成に失敗しました";
@@ -55,7 +56,7 @@ function maskErrorCause(cause: unknown, context?: "Jev") {
   if (/429|RESOURCE_EXHAUSTED|quota|exceeded/i.test(message)) {
     return "rate_or_quota";
   }
-  if (/TINYFISH_API_KEY|TYPESAFE_API_KEY|GEMINI_API_KEY|GEMINI_MODEL|設定されていません/i.test(message)) {
+  if (/TINYFISH_API_KEY|TYPESAFE_API_KEY|GEMINI_API_KEY|設定されていません/i.test(message)) {
     return "configuration";
   }
   if (context === "Jev") {
@@ -365,33 +366,35 @@ async function generateGameNotesInternal(
     urls: enrichedSearchResults.map((result) => result.url),
   });
 
-  let jevResult;
-  try {
-    jevResult = await evaluateTinyFishEvidence({
-      gameName: input.name,
-      developer: input.developer,
-      officialUrl: input.officialUrl,
-      searchResults: enrichedSearchResults,
-    });
-  } catch (cause) {
-    console.warn("Jev evidence evaluation failed", {
-      cause: maskErrorCause(cause, "Jev"),
-    });
-    return {
-      notes: NO_INFORMATION,
-      searchResultCount: searchResults.length,
-    };
-  }
+  if (settings.features.jevEvidenceEvaluation) {
+    let jevResult;
+    try {
+      jevResult = await evaluateTinyFishEvidence({
+        gameName: input.name,
+        developer: input.developer,
+        officialUrl: input.officialUrl,
+        searchResults: enrichedSearchResults,
+      });
+    } catch (cause) {
+      console.warn("Jev evidence evaluation failed", {
+        cause: maskErrorCause(cause, "Jev"),
+      });
+      return {
+        notes: NO_INFORMATION,
+        searchResultCount: searchResults.length,
+      };
+    }
 
-  if (!jevResult.accepted) {
-    return {
-      notes: NO_INFORMATION,
-      searchResultCount: searchResults.length,
-    };
+    if (!jevResult.accepted) {
+      return {
+        notes: NO_INFORMATION,
+        searchResultCount: searchResults.length,
+      };
+    }
   }
 
   const apiKey = getRequiredEnv("GEMINI_API_KEY");
-  const model = getRequiredEnv("GEMINI_MODEL");
+  const model = settings.models.gemini;
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = [

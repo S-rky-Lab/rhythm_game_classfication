@@ -51,17 +51,14 @@ Node.js、npm、PostgreSQLを用意してください。依存関係をインス
 npm install
 ```
 
-ルートディレクトリに `.env` を作成し、PostgreSQLの接続URLを設定します。
+ルートディレクトリの `.env.example` を `.env` にコピーし、データベース接続情報、認証情報、APIトークンを設定します。`.env` は秘密情報用です。モデル選択やAI機能のオン・オフは `src/lib/settings.ts` で設定します。
 
-```env
-DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/rhythm_game_classification" 
-AUTH_SECRET="openssl rand -base64 32 などで生成したランダム文字列"
-ADMIN_PASSWORD="初回seed時に管理者へ設定するパスワード"
-# 任意: ログイン時に紐付ける users.name。未指定の場合は最初の admin ユーザーを使います。
-ADMIN_USER_NAME="管理者"
+```powershell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-`.env` には接続情報が含まれるため、GitHubへコミットしないでください。
+`.env` は秘密情報を含むためGitに追加しないでください。`ADMIN_USER_NAME` は任意で、未指定の場合は最初の管理者ユーザーを使います。
+
 `ADMIN_PASSWORD` は初期ユーザー作成時または管理者パスワード更新時だけ使用します。既存データを保持したままパスワードを変更する場合は、`npx prisma db seed` ではなく、次の専用コマンドを実行してください。
 
 ```bash
@@ -72,15 +69,9 @@ npm run set-admin-password
 
 `/games/new`、`/games/[id]/edit`、`/admin/proposals` と、対応するServer Actionはログイン済みユーザーだけが実行できます。ゲーム登録・編集は `admin` または `editor`、提案承認・却下は `admin` ロールが必要です。
 
-AIによる備考・特徴説明の生成を使う場合は、TinyFish Search APIで検索した上位5件の検索結果を、Google公式の `@google/genai` SDKを通じてGeminiへ渡します。APIキーはGitHubへ公開しないでください。
+AIによる備考・特徴説明の生成を使う場合は、`.env` に `GEMINI_API_KEY` と `TINYFISH_API_KEY` を設定します。Jevの評価を有効にする場合は `TYPESAFE_API_KEY` も必要です。GeminiとJevのモデル選択、およびJev評価のオン・オフは `src/lib/settings.ts` の `models` と `features` を編集します。たとえばJevを無効にする場合は `jevEvidenceEvaluation` を `false` にします。オフにすると評価だけをスキップし、TinyFish検索結果を使ったGemini生成は続行します。設定変更後はアプリケーションを再起動してください。
 
-```env
-GEMINI_API_KEY="your-api-key"
-GEMINI_MODEL="gemini-2.5-flash"
-TINYFISH_API_KEY="your-tinyfish-api-key"
-```
-
-AI生成では、データベースに現在登録されている6件のサンプルゲームだけを文章例として参照します。後から登録したゲームは参照データに追加されません。TinyFishで対象ゲームの検索結果が取得できない場合や、検索結果から特徴を確認できない場合は「情報が有りませんでした」と表示します。
+AI生成では、データベースに現在登録されている6件のサンプルゲームだけを文章例として参照します。後から登録したゲームは参照データに追加されません。TinyFishで対象ゲームの検索結果が取得できない場合は「情報が有りませんでした」と表示します。Jevを無効にした場合は検索結果の評価を行いませんが、Geminiには検索根拠にない情報を推測しないよう指示します。
 
 ## データベースのセットアップ
 
@@ -120,7 +111,7 @@ npm run deploy
 npm run start
 ```
 
-`npm run deploy` は、マイグレーション適用後に `ADMIN_PASSWORD` で管理者のパスワードハッシュを初期化し、少なくとも1人の管理者にハッシュがあることを検証します。`ADMIN_PASSWORD` が未設定の場合や管理者が存在しない場合はデプロイに失敗します。`npm run start` も起動前に同じ検証を行うため、ハッシュ未設定のデータベースではアプリケーションを起動しません。本番環境では、デプロイ先からアクセスできるPostgreSQLの `DATABASE_URL` と `ADMIN_PASSWORD` を設定してください。
+`npm run deploy` は、マイグレーション適用後に `.env` の `ADMIN_PASSWORD` で管理者のパスワードハッシュを初期化し、少なくとも1人の管理者にハッシュがあることを検証します。`ADMIN_PASSWORD` が未設定の場合や管理者が存在しない場合はデプロイに失敗します。`npm run start` も起動前に同じ検証を行うため、ハッシュ未設定のデータベースではアプリケーションを起動しません。本番環境では、デプロイ先からアクセスできるPostgreSQLの接続先などを `.env` に設定してください。
 
 ## 開発用コマンド
 
